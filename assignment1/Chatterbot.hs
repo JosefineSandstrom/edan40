@@ -105,13 +105,8 @@ reductionsApply _ = id
 
 -- Replaces a wildcard in a list with the list given as the third argument
 substitute :: Eq a => a -> [a] -> [a] -> [a]
-substitute _ _ _ = []
-substitute wc t s = map (\x -> if x == wc then substitute' t s else x)
-
-substitute' (t:ts) (s:ss)
-      | ss == []  = s
-      | otherwise = substitute s ts ss
-
+substitute _ [] _ = []
+substitute wc (t:ts) s = (if t == wc then s else [t]) ++ (substitute wc ts s)
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
