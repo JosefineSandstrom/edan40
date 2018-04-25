@@ -112,6 +112,12 @@ substitute wc (t:ts) s = (if t == wc then s else [t]) ++ (substitute wc ts s)
 -- bound to the wildcard in the pattern list.
 match :: Eq a => a -> [a] -> [a] -> Maybe [a]
 match _ _ _ = Nothing
+
+-- Base cases
+match _ [] [] = Just []
+match _ [] _ = Nothing
+match _ _ [] = Nothing
+
 {- TO BE WRITTEN -}
 
 
