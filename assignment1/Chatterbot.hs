@@ -111,23 +111,26 @@ substitute wc (t:ts) s = (if t == wc then s else [t]) ++ (substitute wc ts s)
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
 match :: Eq a => a -> [a] -> [a] -> Maybe [a]
-match _ _ _ = Nothing
 
 -- Base cases
 match _ [] [] = Just []
 match _ [] _ = Nothing
 match _ _ [] = Nothing
-
-{- TO BE WRITTEN -}
+match wc (p:ps) (s:ss)
+    | p /= wc   = if p == s then match wc ps ss else Nothing
+    | otherwise = ( single `orElse` longer)
+    where single = singleWildcardMatch (p:ps) (s:ss)
+          longer = longerWildcardMatch (p:ps) (s:ss)
 
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
-singleWildcardMatch (wc:ps) (x:xs) = Nothing
-{- TO BE WRITTEN -}
-longerWildcardMatch (wc:ps) (x:xs) = Nothing
-{- TO BE WRITTEN -}
+singleWildcardMatch (wc:ps) (x:xs) = if (match wc ps xs) == Nothing then Nothing else Just [x]
 
+longerWildcardMatch (wc:ps) (x:xs)
+    | tmp == Nothing  = Nothing
+    | otherwise       = mmap ([x] ++) tmp
+    where tmp = match wc (wc:ps) xs
 
 
 -- Test cases --------------------
@@ -150,13 +153,16 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationApply wc f s pt = mmap (substitute wc (snd pt)) (match wc (fst pt) s)
 
 
 -- Applying a list of patterns until one succeeds
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationsApply _ _ [] _ = Nothing
+transformationsApply wc f (pt:pts) s
+  | tmp == Nothing   = transformationsApply wc f pts s
+  | otherwise        = tmp
+  where tmp = transformationApply wc f s pt
+
 
 
