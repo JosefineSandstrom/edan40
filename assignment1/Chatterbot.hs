@@ -30,12 +30,18 @@ stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind _ = return id
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-rulesApply _ = id
+rulesApply pattern phrase
+      | tmp == Nothing = words ""
+      | otherwise      = words (try f (unwords (reflect phrase)))
+      where tmp = f (unwords (reflect phrase))
+            f x = transformationsApply '*' id stringPattern x
+            stringPattern = map (\x -> map2 (unwords, unwords) (fst x, snd x)) pattern
+
 
 reflect :: Phrase -> Phrase
-{- TO BE WRITTEN -}
-reflect = id
+reflect [] = []
+reflect inputs = map ref inputs
+  where ref input = foldl (\acc x -> if fst x == input then snd x else acc) input reflections
 
 reflections =
   [ ("am",     "are"),

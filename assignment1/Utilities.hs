@@ -1,4 +1,5 @@
 module Utilities where
+import System.Random
 
 -- Applies functions f1 and f2 to the pair (x1, x2)
 map2 :: (a -> b, c -> d) -> (a, c) -> (b, d)
@@ -27,4 +28,3 @@ fix f x
 -- 
 pick :: RealFrac r => r -> [a] -> a
 pick u xs = xs !! (floor.(u*).fromIntegral.length) xs
-
