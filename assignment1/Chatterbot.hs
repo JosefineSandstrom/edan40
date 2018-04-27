@@ -22,12 +22,18 @@ type Phrase = [String]
 type PhrasePair = (Phrase, Phrase)
 type BotBrain = [(Phrase, [Phrase])]
 
-
 --------------------------------------------------------
 
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
-{- TO BE WRITTEN -}
-stateOfMind _ = return id
+stateOfMind bb = do
+  r <- randomIO :: IO Float
+  let tmp1 = fst $ unzip bb
+      tmp2 = snd $ unzip bb
+      tmp3 = map (pick r) tmp2
+      pattern = zip tmp1 tmp3
+  -- print pattern
+  return (rulesApply pattern)
+
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
 rulesApply pattern phrase
@@ -72,12 +78,12 @@ present :: Phrase -> String
 present = unwords
 
 prepare :: String -> Phrase
-prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|") 
+prepare = reduce . words . filter (not . flip elem ".,:;*!#%&|") 
 
 rulesCompile :: [(String, [String])] -> BotBrain
-{- TO BE WRITTEN -}
-rulesCompile _ = []
-
+rulesCompile spairs = zip (map words tmp1) (map (map words) tmp2)
+  where tmp1 = fst $ unzip spairs
+        tmp2 = snd $ unzip spairs
 
 --------------------------------------
 
@@ -150,8 +156,6 @@ substituteCheck = substituteTest == testString
 
 matchTest = match '*' testPattern testString
 matchCheck = matchTest == Just testSubstitutions
-
-
 
 -------------------------------------------------------
 -- Applying patterns
