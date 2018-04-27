@@ -38,12 +38,23 @@ stateOfMind bb = do
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
 rulesApply pattern phrase
       | tmp == Nothing = words ""
-      | otherwise      = words (try f (unwords (reflect phrase)))
-      where tmp = f (unwords (reflect phrase))
-            f x = transformationsApply '*' id stringPattern x
+      | otherwise      = words (try f (unwords phrase))
+      where tmp = f (unwords phrase)
+            f x = transformationsApply '*' (unwords . reflect . words) stringPattern' x
             stringPattern = map (\x -> map2 (unwords, unwords) (fst x, snd x)) pattern
+            stringPattern' = map (\x -> map2 (map toLower, id) (fst x, snd x)) stringPattern
 
 
+{-
+rulesApply :: [PhrasePair] -> Phrase -> Phrase
+rulesApply pattern phrase
+      | tmp == Nothing = words ""
+      | otherwise      = tmp 
+      where tmp = transformationsApply '*' (unwords . reflect . words) stringPattern' (unwords phrase)
+            stringPattern = map (\x -> map2 (unwords, unwords) (fst x, snd x)) pattern
+            stringPattern' = map (\x -> map2 (map toLower, id) (fst x, snd x)) stringPattern
+-}
+        
 reflect :: Phrase -> Phrase
 reflect [] = []
 reflect inputs = map ref inputs
@@ -78,7 +89,7 @@ present :: Phrase -> String
 present = unwords
 
 prepare :: String -> Phrase
-prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|") 
+prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain
 rulesCompile spairs = zip (map words tmp1) (map (map words) tmp2)
@@ -104,11 +115,12 @@ reductions = (map.map2) (words, words)
   ]
 
 reduce :: Phrase -> Phrase
-reduce = reductionsApply reductions
+reduce = fix $ reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-reductionsApply _ = id
+reductionsApply reductionsList phrase =  words (try (transformationsApply '*' id tmp1) tmp2)
+      where tmp1 = (map . map2) (unwords, unwords) reductionsList
+            tmp2 = unwords phrase
 
 
 -------------------------------------------------------
@@ -163,7 +175,7 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply wc f s pt = mmap (substitute wc (snd pt)) (match wc (fst pt) s)
+transformationApply wc f s pt = mmap (substitute wc (snd pt)) (mmap f (match wc (fst pt) s))
 
 
 -- Applying a list of patterns until one succeeds
