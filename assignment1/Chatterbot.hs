@@ -142,14 +142,14 @@ match _ [] _ = Nothing
 match _ _ [] = Nothing
 match wc (p:ps) (s:ss)
     | p /= wc   = if p == s then match wc ps ss else Nothing
-    | otherwise = ( single `orElse` longer)
+    | otherwise =  single `orElse` longer
     where single = singleWildcardMatch (p:ps) (s:ss)
           longer = longerWildcardMatch (p:ps) (s:ss)
 
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
-singleWildcardMatch (wc:ps) (x:xs) = if (match wc ps xs) == Nothing then Nothing else Just [x]
+singleWildcardMatch (wc:ps) (x:xs) = if match wc ps xs == Nothing then Nothing else Just [x]
 
 longerWildcardMatch (wc:ps) (x:xs)
     | tmp == Nothing  = Nothing
@@ -175,7 +175,7 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply wc f s pt = mmap (substitute wc (snd pt)) (mmap f (match wc (fst pt) s))
+transformationApply wc f s pt = mmap (substitute wc $ snd pt) (mmap f $ match wc (fst pt) s)
 
 
 -- Applying a list of patterns until one succeeds
