@@ -44,7 +44,17 @@ generateStrings (x:xs) (y:ys) = attachHeads x y (generateStrings xs ys) ++
 calcScore :: String -> String -> Int                                
 calcScore [] []         = 0
 calcScore (x:xs) (y:ys) = score x y + calcScore xs ys
-                                
--- outputOptAlignments string1 string2 = id
+
+outputOptAlignments :: String -> String -> IO()
+outputOptAlignments string1 string2 = putStrLn $ "There are " ++ lengthList ++  " optimal alignments:" 
+    ++ "\n" ++ (unlines $ map alignmentToString list) ++ "There were " ++ lengthList ++ " optimal alignments!"
+    where list = optAlignments string1 string2
+          lengthList = show $ length list
+          alignmentToString = (\(fst,snd) -> "\n" ++ fst ++ "\n" ++ snd ++ "\n")
+
+-- Program optimization
+similarityScore' :: String -> String -> Int
+
+optAlignments' :: String -> String -> (Int, [AlignmentType])
 
 
