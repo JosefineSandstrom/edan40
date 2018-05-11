@@ -64,18 +64,18 @@ similarityScore' xs ys = simLen (length xs) (length ys)
 
         simEntry :: Int -> Int -> Int
         simEntry 0 0 = 0
-        simEntry 0 j = scoreSpace + simEntry 0 (j-1)
-        simEntry i 0 = scoreSpace + simEntry (i-1) 0
-        simEntry i j = maximum [score x y + simEntry (i-1) (j-1),
-                                score x '-' + simEntry (i-1) j,
-                                score '-' y + simEntry i (j-1)]
+        simEntry 0 j = scoreSpace + simLen 0 (j-1)
+        simEntry i 0 = scoreSpace + simLen (i-1) 0
+        simEntry i j = maximum [score x y + simLen (i-1) (j-1),
+                                score x '-' + simLen (i-1) j,
+                                score '-' y + simLen i (j-1)]
             where
                 x = xs!!(i-1)
                 y = ys!!(j-1)
 
-        
-optAlignments' :: String -> String -> [AlignmentType]
-optAlignments' xs ys = optLen (length xs) (length ys)
+      
+optAlignmentsIntermediate' :: String -> String -> [AlignmentType]
+optAlignmentsIntermediate' xs ys = optLen (length xs) (length ys)
     where 
         optLen i j = optTable!!i!!j
         optTable = [ [ optEntry i j | j<-[0..]] | i<-[0..] ]
@@ -91,48 +91,25 @@ optAlignments' xs ys = optLen (length xs) (length ys)
                 x = xs!!(i-1)
                 y = ys!!(j-1)
 
-{-
-optAlignments'' :: String -> String -> (Int, [AlignmentType])
-optAlignments'' xs ys = optLen (length xs) (length ys)
+optAlignments' :: String -> String -> (Int, [AlignmentType])
+optAlignments' xs ys = optLen (length xs) (length ys)
     where
         optLen i j = optTable!!i!!j
-        optTable [ [ optEntry i j | j<-[0..]] | i<-[0..] ]
+        optTable = [ [ optEntry i j | j <- [0..] ] | i <- [0..] ]
 
         optEntry :: Int -> Int -> (Int, [AlignmentType])
         optEntry 0 0 = (0, [([], [])])
-        optEntry 0 j = map2 ((+) scoreSpace, attachTails '-' (ys!!(j-1))) (optEntry 0 (j-1))
-        optEntry i 0 = map2 ((+) scoreSpace, attachTails (xs!!(i-1)) '-') (optEntry (i-1) 0)
-        optEntry i j = map2 (maximum, id) ([score x y + (fst $ optEntry (i-1) (j-1)), score x '-' + (fst $ optEntry (i-1) j), score '-' y + (fst $ optEntry i (j-1))], attachTails x y (snd $ optEntry (i-1) (j-1)) ++ attachTails x '-' (snd $ optEntry (i-1) j) ++ attachTails '-' y (snd $ optEntry i (j-1)) )
+        optEntry 0 j = (scoreSpace + (fst $ optLen 0 (j-1)), attachTails '-' (ys!!(j-1)) (snd $ optLen 0 (j-1)))
+        optEntry i 0 = (scoreSpace + (fst $ optLen (i-1) 0), attachTails (xs!!(i-1)) '-' (snd $ optLen (i-1) 0))
+        optEntry i j = (head scores, concat alignments)
             where
+                (diagScore, diagAlignments) = optLen (i-1) (j-1)
+                (topScore, topAlignments) = optLen (i-1) j
+                (sideScore, sideAlignments) = optLen i (j-1)
+                tmp = maximaBy fst [(score x y + diagScore, attachTails x y diagAlignments),
+                                    (score x '-' + topScore, attachTails x '-' topAlignments), 
+                                    (score '-' y + sideScore, attachTails '-' y sideAlignments)]
+                (scores, alignments) = unzip tmp
+
                 x = xs!!(i-1)
                 y = ys!!(j-1)
--}
-
-optAlignments'' :: String -> String -> (Int, [AlignmentType])
-optAlignments'' xs ys = optLen (length xs) (length ys)
-    where
-        optLen i j = optTable!!i!!j
-        optTable [ [ optEntry i j | j<-[0..]] | i<-[0..] ]
-
-        optEntry :: Int -> Int -> (Int, [AlignmentType])
-        optEntry i j = (simEntry i j, genEntry i j)
-            where
-                simEntry :: Int -> Int -> Int
-                simEntry 0 0 = 0
-                simEntry 0 j = scoreSpace + simEntry 0 (j-1)
-                simEntry i 0 = scoreSpace + simEntry (i-1) 0
-                simEntry i j = maximum [score x y + simEntry (i-1) (j-1),
-                                        score x '-' + simEntry (i-1) j,
-                                        score '-' y + simEntry i (j-1)]
-
-                genEntry :: Int -> Int -> [AlignmentType]
-                genEntry 0 0 = [([], [])]
-                genEntry 0 j = attachTails '-' (ys!!(j-1)) (genEntry 0 (j-1))
-                genEntry i 0 = attachTails (xs!!(i-1)) '-' (genEntry (i-1) 0)
-                genEntry i j = attachTails x y (genEntry (i-1) (j-1)) ++
-                               attachTails x '-' (genEntry (i-1) j) ++ 
-                               attachTails '-' y (genEntry i (j-1))
-                
-                    where
-                        x = xs!!(i-1)
-                        y = ys!!(j-1)
