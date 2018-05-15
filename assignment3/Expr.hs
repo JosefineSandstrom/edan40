@@ -71,7 +71,13 @@ shw prec (Mul t u) = parens (prec>6) (shw 6 t ++ "*" ++ shw 6 u)
 shw prec (Div t u) = parens (prec>6) (shw 6 t ++ "/" ++ shw 7 u)
 
 value :: Expr -> Dictionary.T String Integer -> Integer
-value (Num n) _ = error "value not implemented"
+value (Num n) _ = n
+value (Var v) dict = Dictionary.lookup v dict ! Parser.err "Variable not found" -- Fix
+value (Add lhs rhs) dict = value lhs dict + value rhs dict
+value (Sub lhs rhs) dict = value lhs dict - value rhs dict
+value (Mul lhs rhs) dict = value lhs dict * value rhs dict
+value (Div lhs rhs) dict = value lhs dict `div` value rhs dict -- Fix when denominator == 0
+
 
 instance Parse Expr where
     parse = expr
