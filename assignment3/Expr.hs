@@ -25,6 +25,7 @@ module Expr(Expr, T, parse, fromString, value, toString) where
 -}
 import Prelude hiding (return, fail)
 import Parser hiding (T)
+import Data.Maybe (fromMaybe)
 import qualified Dictionary
 
 data Expr = Num Integer | Var String | Add Expr Expr 
@@ -72,12 +73,13 @@ shw prec (Div t u) = parens (prec>6) (shw 6 t ++ "/" ++ shw 7 u)
 
 value :: Expr -> Dictionary.T String Integer -> Integer
 value (Num n) _ = n
-value (Var v) dict = Dictionary.lookup v dict ! Parser.err "Variable not found" -- Fix
+value (Var v) dict = fromMaybe (error "Variable not found") (Dictionary.lookup v dict)
 value (Add lhs rhs) dict = value lhs dict + value rhs dict
 value (Sub lhs rhs) dict = value lhs dict - value rhs dict
 value (Mul lhs rhs) dict = value lhs dict * value rhs dict
-value (Div lhs rhs) dict = value lhs dict `div` value rhs dict -- Fix when denominator == 0
-
+value (Div lhs rhs) dict 
+        | value rhs dict == 0  = error "Divided by zero"
+        | otherwise            = value lhs dict `div` value rhs dict
 
 instance Parse Expr where
     parse = expr
