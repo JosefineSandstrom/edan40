@@ -1,4 +1,4 @@
-module Parser(module CoreParser, T, digit, digitVal, chars, letter, err,
+module Parser(module CoreParser, T, digit, digitVal, char', chars, letter, err,
               lit, number, iter, accept, require, token,
               spaces, word, (-#), (#-)) where
 import Prelude hiding (return, fail)
@@ -11,6 +11,12 @@ type T a = Parser a
 -- Error
 err :: String -> Parser a
 err message cs = error (message++" near "++cs++"\n")
+
+-- Same as char but fails when finding "\n"
+char' :: Parser Char
+char' []     = Nothing
+char' "\n"   = Nothing
+char' (c:cs) = Just (c, cs)
 
 -- Iterate a parser as long as it succeeds, empty list is returned if recursion fails
 iter :: Parser a -> Parser [a]  

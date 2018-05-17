@@ -3,11 +3,12 @@ module TestProgram where
 
 import Program
 
-p, p1, p2, p3 :: Program.T
+p, p1, p2, p3, b :: Program.T
 p = fromString  ("\
 \read k;\
 \read n;\
 \m := 1;\
+\-- comment\n\
 \while n-m do\
 \  begin\
 \    if m - m/k*k then\
@@ -16,6 +17,9 @@ p = fromString  ("\
 \      write m;\
 \    m := m + 1;\
 \  end")
+
+a = toString p
+b = fromString a
 
 p1 = fromString  ("\
 \read n;\

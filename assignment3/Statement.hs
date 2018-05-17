@@ -12,7 +12,7 @@ data Statement =  Assignment String Expr.T
     | Write Expr.T
     | Begin [Statement]
     | Skip
-    | Comment
+    | Comment String
     deriving Show
     
 assignment = word #- accept ":=" # Expr.parse #- require ";" >-> buildAss
@@ -33,13 +33,15 @@ buildWrite e = Write e
 skip' = accept "skip" # require ";" >-> buildSkip
 buildSkip _ = Skip
     
-comment' = accept "--" # require "\n" >-> buildComment
-buildComment _ = Comment
+comment' = accept "--" -# (iter char') #- require "\n" >-> buildComment
+buildComment s = Comment s
     
 begin' = accept "begin" -# iter parse #- require "end" >-> buildBegin
 buildBegin ss = Begin ss
     
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
+exec [] dict input = input
+
 exec (If cond thenStmts elseStmts: stmts) dict input = 
     if (Expr.value cond dict)>0 
     then exec (thenStmts: stmts) dict input
@@ -59,8 +61,20 @@ exec (Begin stmt : stmts) dict input = exec (stmt ++ stmts) dict input
     
 exec (Skip : stmts) dict input = exec stmts dict input
     
-exec (Comment : stmts) dict input = exec stmts dict input
-    
+exec (Comment s : stmts) dict input = exec stmts dict input
+
+indent n = take n (repeat '\t')
+
+shw :: Int -> Statement -> String
+shw n (Assignment name expr)        = indent n ++ name ++ " := " ++ Expr.toString expr ++ ";\n"
+shw n (If cond thenStmts elseStmts) = indent n ++ "if " ++ Expr.toString cond ++ " then\n" ++ shw (n+1) thenStmts ++ indent n ++ "else\n" ++ shw (n+1) elseStmts  
+shw n (While cond doStmt)           = indent n ++ "while " ++ Expr.toString cond ++ " do\n" ++ shw (n+1) doStmt
+shw n (Read v)                      = indent n ++ "read " ++ v ++ ";\n"
+shw n (Write expr)                  = indent n ++ "write " ++ Expr.toString expr ++ ";\n"
+shw n (Begin stmt)                  = indent n ++ "begin\n" ++ concat (map (shw (n+1)) stmt) ++ indent n ++ "end\n" 
+shw n (Skip)                        = indent n ++ "skip;\n"
+shw n (Comment s)                   = indent n ++ "--" ++ s ++ "\n"
+
 instance Parse Statement where
-    parse = assignment ! if' ! while' ! read' ! write' ! skip' ! begin' ! comment' ! error "Parse error"
-    toString = error "Statement.toString not implemented"
+    parse = assignment ! if' ! while' ! read' ! write' ! skip' ! begin' ! comment'
+    toString = shw 0
