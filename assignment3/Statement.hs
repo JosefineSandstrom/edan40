@@ -1,13 +1,13 @@
 module Statement(T, parse, toString, fromString, exec) where
-    import Prelude hiding (return, fail)
-    import Parser hiding (T)
-    import qualified Dictionary
-    import qualified Expr
+import Prelude hiding (return, fail)
+import Parser hiding (T)
+import qualified Dictionary
+import qualified Expr
 
 type T = Statement
-data Statement =  Assignment String Expr.T 
+data Statement =  Assignment String Expr.T
     | If Expr.T Statement Statement
-    | Whe Expr.T Statement
+    | While Expr.T Statement
     | Read String
     | Write Expr.T
     | Begin [Statement]
@@ -31,10 +31,10 @@ write' = accept "write" -# Expr.parse #- require ";" >-> buildWrite
 buildWrite e = Write e
     
 skip' = accept "skip" # require ";" >-> buildSkip
-buildSkip trash = Skip
+buildSkip _ = Skip
     
 comment' = accept "--" # require "\n" >-> buildComment
-buildComment trash = Comment
+buildComment _ = Comment
     
 begin' = accept "begin" -# iter parse #- require "end" >-> buildBegin
 buildBegin ss = Begin ss
