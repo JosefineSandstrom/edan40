@@ -29,7 +29,7 @@ import Data.Maybe (fromMaybe)
 import qualified Dictionary
 
 data Expr = Num Integer | Var String | Add Expr Expr 
-       | Sub Expr Expr | Mul Expr Expr | Div Expr Expr
+       | Sub Expr Expr | Mul Expr Expr | Div Expr Expr | Exp Expr Expr
          deriving Show
 
 type T = Expr
@@ -43,7 +43,8 @@ var = word >-> Var
 num = number >-> Num
 
 mulOp = lit '*' >-> (\ _ -> Mul) !
-        lit '/' >-> (\ _ -> Div)
+        lit '/' >-> (\ _ -> Div) !
+        lit '^' >-> (\ _ -> Exp)
 
 addOp = lit '+' >-> (\ _ -> Add) !
         lit '-' >-> (\ _ -> Sub)
@@ -70,6 +71,7 @@ shw prec (Add t u) = parens (prec>5) (shw 5 t ++ "+" ++ shw 5 u)
 shw prec (Sub t u) = parens (prec>5) (shw 5 t ++ "-" ++ shw 6 u)
 shw prec (Mul t u) = parens (prec>6) (shw 6 t ++ "*" ++ shw 6 u)
 shw prec (Div t u) = parens (prec>6) (shw 6 t ++ "/" ++ shw 7 u)
+shw prec (Exp t u) = parens (prec>6) (shw 6 t ++ "^" ++ shw 6 u)
 
 value :: Expr -> Dictionary.T String Integer -> Integer
 value (Num n) _ = n
@@ -80,6 +82,7 @@ value (Mul lhs rhs) dict = value lhs dict * value rhs dict
 value (Div lhs rhs) dict 
         | value rhs dict == 0  = error "Divided by zero"
         | otherwise            = value lhs dict `div` value rhs dict
+value (Exp lhs rhs) dict = value lhs dict ^ value rhs dict
 
 instance Parse Expr where
     parse = expr
