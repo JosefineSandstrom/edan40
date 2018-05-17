@@ -63,7 +63,7 @@ exec (Skip : stmts) dict input = exec stmts dict input
     
 exec (Comment s : stmts) dict input = exec stmts dict input
 
-indent n = take n (repeat '\t')
+indent n = replicate n '\t'
 
 shw :: Int -> Statement -> String
 shw n (Assignment name expr)        = indent n ++ name ++ " := " ++ Expr.toString expr ++ ";\n"
