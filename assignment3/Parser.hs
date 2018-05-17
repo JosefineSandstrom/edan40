@@ -15,7 +15,7 @@ err message cs = error (message++" near "++cs++"\n")
 -- Same as char but fails when finding "\n"
 char' :: Parser Char
 char' []     = Nothing
-char' "\n"   = Nothing
+char' ('\n':cs)   = Nothing
 char' (c:cs) = Just (c, cs)
 
 -- Iterate a parser as long as it succeeds, empty list is returned if recursion fails
