@@ -32,10 +32,21 @@ module Chatterbot where
         tmp3 = map (pick r) tmp2
         patterns = zip tmp1 tmp3
     return (rulesApply patterns)
-  
-  -- fixed
+
   rulesApply :: [PhrasePair] -> Phrase -> Phrase
-  rulesApply = (maybe [] id .) . transformationsApply "*" reflect
+  rulesApply pattern phrase
+        | tmp == Nothing = words ""
+        | otherwise      = words (try f (unwords phrase))
+        where tmp = f (unwords phrase)
+              f x = transformationsApply '*' (unwords . reflect . words) stringPattern' (map toLower x)
+              stringPattern = phrasePairToStringPair pattern
+              stringPattern' = map (\x -> map2 (map toLower, id) (fst x, snd x)) stringPattern
+
+  phrasePairToStringPair :: [([String], [String])] -> [(String, String)]
+  phrasePairToStringPair = (map . map2) (unwords, unwords)
+
+  stringPairToPhrasePair :: [(String, String)] -> [([String], [String])]
+  stringPairToPhrasePair = (map . map2) (words, words)
 
   reflect :: Phrase -> Phrase
   reflect = (map.try) (flip lookup reflections) --nice
