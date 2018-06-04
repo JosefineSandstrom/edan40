@@ -45,9 +45,6 @@ module Chatterbot where
   phrasePairToStringPair :: [([String], [String])] -> [(String, String)]
   phrasePairToStringPair = (map . map2) (unwords, unwords)
 
-  stringPairToPhrasePair :: [(String, String)] -> [([String], [String])]
-  stringPairToPhrasePair = (map . map2) (words, words)
-
   reflect :: Phrase -> Phrase
   reflect = (map.try) (flip lookup reflections) --nice
 
